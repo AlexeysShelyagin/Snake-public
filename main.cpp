@@ -1,11 +1,12 @@
 #include <bits/stdc++.h>
 #include <conio.h>
+#include <windows.h>
 
-#define width 20            //map settings
-#define heigh 20            //      20*20 - default
+//#define width 20            //map settings
+//#define heigh 20            //      20*20 - default
 
-#define startXPos 10        //snake settings
-#define startYPos 10        //      x=10,y=10 - default
+//#define startXPos 10        //snake settings
+//#define startYPos 10        //      x=10,y=10 - default
 #define body char(248)      //
 #define head '0'            //
 #define dieHead '*'         //
@@ -13,10 +14,11 @@
 
 #define LEFT_DOWN 187       //snake body settings
 #define LEFT_UP 188         //
-#define RIGHT_UP '╚'        //
-#define RIGHT_DOWN '╔'      //
+#define RIGHT_UP 200        //
+#define RIGHT_DOWN 201      //
 #define BODY_VERTICAL 186   //
 #define BODY_HORISONTAL 205 //
+#define BEAUTY_HEAD 2       //
 
 #define UP_KEY 119           //movement settings
 #define DOWN_KEY 115         //
@@ -25,14 +27,24 @@
 #define PAUSE_KEY 32         //
 
                             //game settings
-#define DIFFICULTY 5        //1 - very slow, 2 - easy, 5 - medium, 10 - hard
+//#define DIFFICULTY 5        //1 - very slow, 2 - easy, 5 - medium, 10 - hard
 #define APPLE '*'           //
+
+#define leftArrow '<'
+#define rightArrow '>'
+
+#define SETTINGS_COUNT 5
 
 using namespace std;
 
-vector < vector < char > > pole(width, vector < char > (heigh, ' '));
+int DIFFICULTY = 5, width = 20, heigh = 20, startXPos = 10, startYPos = 10;
+
+vector < vector < char > > pole(0);
 vector < pair < int, int > > snake(0);
 vector < pair < int, int > > eatedApples(0);
+
+int selectedSetting = 0;
+bool settingsExit = 0;
 
 int xDir = 1, yDir = 0;
 int appleX, appleY;
@@ -45,11 +57,11 @@ char setBody (int x, int y, int pos){
     if(snake[pos+1].first == x-1 && snake[pos-1].second == y+1) return LEFT_DOWN;
     if(snake[pos-1].first == x-1 && snake[pos+1].second == y+1) return LEFT_DOWN;
 
-    if(snake[pos+1].first == x+1 && snake[pos-1].second == y+1) return RIGHT_UP;
-    if(snake[pos-1].first == x+1 && snake[pos+1].second == y+1) return RIGHT_UP;
+    if(snake[pos+1].first == x+1 && snake[pos-1].second == y+1) return RIGHT_DOWN;
+    if(snake[pos-1].first == x+1 && snake[pos+1].second == y+1) return RIGHT_DOWN;
 
-    if(snake[pos+1].first == x+1 && snake[pos-1].second == y-1) return RIGHT_DOWN;
-    if(snake[pos-1].first == x+1 && snake[pos+1].second == y-1) return RIGHT_DOWN;
+    if(snake[pos+1].first == x+1 && snake[pos-1].second == y-1) return RIGHT_UP;
+    if(snake[pos-1].first == x+1 && snake[pos+1].second == y-1) return RIGHT_UP;
 
     if(snake[pos+1].second == y+1 && snake[pos-1].second == y-1) return BODY_VERTICAL;
     if(snake[pos-1].second == y+1 && snake[pos+1].second == y-1) return BODY_VERTICAL;
@@ -76,17 +88,17 @@ void render (int isDie){
         pole[width-1][i] = '#';
     }
 
-    //pole[snake[0].first][snake[0].second] = body;
     for (int i = 0; i < snake.size() - 1; ++i){
-        //pole[snake[i].first][snake[i].second] = setBody(snake[i].first, snake[i].second, i);
-        pole[snake[i].first][snake[i].second] = body;
+        pole[snake[i].first][snake[i].second] = setBody(snake[i].first, snake[i].second, i);
+        //pole[snake[i].first][snake[i].second] = body;
     }
     if (isDie) pole[snake[snake.size() - 1].first][snake[snake.size() - 1].second] = dieHead;
-    else pole[snake[snake.size() - 1].first][snake[snake.size() - 1].second] = head;
+    //else pole[snake[snake.size() - 1].first][snake[snake.size() - 1].second] = head;
+    else pole[snake[snake.size() - 1].first][snake[snake.size() - 1].second] = BEAUTY_HEAD;
 
     system ("cls");
-    for(int i = 0; i < width; ++i){
-        for(int j = 0; j < heigh; ++j){
+    for(int i = 0; i < heigh; ++i){
+        for(int j = 0; j < width; ++j){
             cout<<pole[j][i];
         }
         if(i == 0){
@@ -172,7 +184,7 @@ void movement (){
             yDir = 0;
         }
         if(dir == PAUSE_KEY){
-            for(int i = 0; i < 100000000; ++i){}
+            Sleep(1000);
             system("pause");
         }
     }
@@ -195,12 +207,82 @@ void main_game_loop (){
         render(isDie);
         if(isDie) return;
         setNewBest();
-        for(int i = 0; i  < 200000000 / DIFFICULTY; ++i){}
+        Sleep(200 / DIFFICULTY);
+    }
+}
+
+void settings_render (){
+    system("cls");
+    cout<<"Settings:"<<endl<<endl;
+
+    if(selectedSetting == 0) cout<<"    ";
+    cout<<"Difficulty: "<<leftArrow<<" "<<DIFFICULTY<<" "<<rightArrow<<endl;
+
+    if(selectedSetting == 1) cout<<"    ";
+    cout<<"Map width: "<<leftArrow<<" "<<width<<" "<<rightArrow<<endl;
+
+    if(selectedSetting == 2) cout<<"    ";
+    cout<<"Map heigh: "<<leftArrow<<" "<<heigh<<" "<<rightArrow<<endl;
+
+    if(selectedSetting == 3) cout<<"    ";
+    cout<<"Start x: "<<leftArrow<<" "<<startXPos<<" "<<rightArrow<<endl;
+
+    if(selectedSetting == 4) cout<<"    ";
+    cout<<"Start y: "<<leftArrow<<" "<<startYPos<<" "<<rightArrow<<endl;
+
+    cout<<endl<<"Press *space* to start game ...";
+}
+
+void change_setting(int type){
+    switch (selectedSetting){
+        case 0: if(!(DIFFICULTY == 1 && type == -1)) DIFFICULTY += type; break;
+        case 1: if(!(width == 1 && type == -1)) width += type; break;
+        case 2: if(!(heigh == 1 && type == -1)) heigh += type; break;
+        case 3: if(!(startXPos == 1 && type == -1)) startXPos += type; break;
+        case 4: if(!(startYPos == 1 && type == -1)) startYPos += type; break;
+    }
+}
+
+void settings_navigation (){
+    int button;
+    while (!kbhit){}
+    button = getch();
+    if(button == UP_KEY){
+        if(selectedSetting == 0) selectedSetting = SETTINGS_COUNT - 1;
+        else selectedSetting--;
+    }
+    if(button == DOWN_KEY){
+        if(selectedSetting == SETTINGS_COUNT-1) selectedSetting = 0;
+        else selectedSetting++;
+    }
+    if(button == LEFT_KEY){
+        change_setting(-1);
+    }
+    if(button == RIGHT_KEY){
+        change_setting(1);
+    }
+    if(button == 32){
+        settingsExit = 1;
+    }
+}
+
+void settings_menu (){
+    settings_render();
+    while(!settingsExit){
+        settings_navigation();
+        settings_render();
     }
 }
 
 int main()
 {
+    settings_menu();
+
+    vector < char > temp(heigh, ' ');
+    for(int i = 0; i < width; ++i){
+        pole.push_back(temp);
+    }
+
     for (int i = 0; i < startLen; ++i){
         snake.push_back(make_pair(startXPos + i, startYPos));
     }
@@ -208,17 +290,17 @@ int main()
 
     ifstream getBest("Scores.txt");
     getBest>>best;
-
-    cout<<"Please select correct language on your keyboard.."<<endl;
-    system("pause");
+    //cout<<"Please select correct language on your keyboard.."<<endl;
+    //system("pause");
 
     main_game_loop();
 
-    for(int i = 0; i < 500000000; ++i){}
+    Sleep(1500);
     system("cls");
     cout<<"score: "<<score<<endl;
-    cout<<"best: "<<best<<endl;
-    for(int i = 0; i < 500000000; ++i){}
+    if(best > score) cout<<"best: "<<best<<endl;
+    else cout<<"best: "<<score<<endl;
+    Sleep(1500);
     system("pause");
 
     return 0;

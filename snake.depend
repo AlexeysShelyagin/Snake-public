@@ -1,9 +1,10 @@
 # depslib dependency file v1.0
-1560247520 source:d:\++temp\shelyagin\snake\main.cpp
+1560503329 source:d:\++temp\shelyagin\snake\main.cpp
 	<bits/stdc++.h>
 	<conio.h>
 
-1560023941 source:d:\documents\github\snake\main.cpp
+1560695443 source:d:\documents\github\snake\main.cpp
 	<bits/stdc++.h>
 	<conio.h>
+	<windows.h>
 
