@@ -25,6 +25,7 @@
 #define LEFT_KEY 97          //
 #define RIGHT_KEY 100        //
 #define PAUSE_KEY 32         //
+#define SELECT_KEY 32        //
 
                             //game settings
 //#define DIFFICULTY 5        //1 - very slow, 2 - easy, 5 - medium, 10 - hard
@@ -35,7 +36,21 @@
 
 #define SETTINGS_COUNT 5
 
+#define MENU_COUNT 4
+#define LOGO_SIZE 10
+
 using namespace std;
+
+string logo[LOGO_SIZE] = {"############",
+                          "#          #",
+                          "# #        #",
+                          "# # ###    #",
+                          "# # # #    #",
+                          "# ### #    #",
+                          "#     #    #",
+                          "#     ## * #",
+                          "#          #",
+                          "############"};
 
 int DIFFICULTY = 5, width = 20, heigh = 20, startXPos = 10, startYPos = 10;
 
@@ -45,6 +60,10 @@ vector < pair < int, int > > eatedApples(0);
 
 int selectedSetting = 0;
 bool settingsExit = 0;
+
+int selectedMenu = 0;
+
+bool exitGame = 0;
 
 int xDir = 1, yDir = 0;
 int appleX, appleY;
@@ -245,7 +264,7 @@ void change_setting(int type){
 
 void settings_navigation (){
     int button;
-    while (!kbhit){}
+    while (!kbhit()){}
     button = getch();
     if(button == UP_KEY){
         if(selectedSetting == 0) selectedSetting = SETTINGS_COUNT - 1;
@@ -261,12 +280,15 @@ void settings_navigation (){
     if(button == RIGHT_KEY){
         change_setting(1);
     }
-    if(button == 32){
+    if(button == SELECT_KEY){
         settingsExit = 1;
     }
 }
 
 void settings_menu (){
+    selectedSetting = 0;
+    settingsExit = 0;
+
     settings_render();
     while(!settingsExit){
         settings_navigation();
@@ -274,22 +296,117 @@ void settings_menu (){
     }
 }
 
-int main()
-{
-    settings_menu();
+void restart (){
+    xDir = 1;
+    yDir = 0;
+    score = 0;
+    selectedSetting = 0;
+    settingsExit = 0;
+    selectedMenu = 0;
+
+
+    vector < vector < char > > pole_temp(0);
+    vector < pair < int, int > > snake_temp(0);
+    vector < pair < int, int > > eatedApples_temp(0);
+    pole = pole_temp;
+    snake = snake_temp;
+    eatedApples = eatedApples_temp;
+
 
     vector < char > temp(heigh, ' ');
-    for(int i = 0; i < width; ++i){
+    for(int i = 0; i < width; ++i){     //if set width, error "out of range"
         pole.push_back(temp);
     }
 
     for (int i = 0; i < startLen; ++i){
         snake.push_back(make_pair(startXPos + i, startYPos));
     }
-    srand(time(NULL));
 
     ifstream getBest("Scores.txt");
     getBest>>best;
+}
+
+void scores_window (){
+    system ("cls");
+    cout<<"best: "<<best;
+
+    int key;
+    while(!kbhit()){}
+    key = getch();
+    if(key == SELECT_KEY) return;
+
+}
+
+void render_menu (){
+    system("cls");
+    for(int i = 0; i < LOGO_SIZE; ++i){
+        cout<<"    "<<logo[i]<<endl;
+    }
+    cout<<endl<<endl;
+
+    if(selectedMenu == 0) cout<<"   > ";
+    else cout<<"    ";
+    cout<<"start"<<endl;
+
+    if(selectedMenu == 1) cout<<"   > ";
+    else cout<<"    ";
+    cout<<"settings"<<endl;
+
+    if(selectedMenu == 2) cout<<"   > ";
+    else cout<<"    ";
+    cout<<"scores"<<endl;
+
+    if(selectedMenu == 3) cout<<"    > ";
+    else cout<<"    ";
+    cout<<"exit"<<endl;
+}
+
+bool menu_navigation (){
+    int key;
+    while(!kbhit()){}
+    key = getch();
+
+    if(key == UP_KEY){
+        if (selectedMenu == 0) selectedMenu = MENU_COUNT-1;
+        else selectedMenu--;
+    }
+    if(key == DOWN_KEY){
+        if(selectedMenu == MENU_COUNT-1) selectedMenu = 0;
+        else selectedMenu++;
+    }
+    if(key == SELECT_KEY){
+        return 1;
+    }
+    return 0;
+}
+
+void main_menu (){
+    bool select;
+    render_menu();
+    while (true){
+        select = menu_navigation();
+        if(select){
+            if(selectedMenu == 0) return;
+            if(selectedMenu == 1) settings_menu();
+            if(selectedMenu == 2) scores_window();
+            if(selectedMenu == 3){
+                exitGame = 1;
+                return;
+            }
+        }
+        render_menu();
+    }
+}
+
+int main()
+{
+    restart ();
+
+    main_menu();
+
+    if(exitGame) return 0;
+
+    srand(time(NULL));
     //cout<<"Please select correct language on your keyboard.."<<endl;
     //system("pause");
 
@@ -303,5 +420,6 @@ int main()
     Sleep(1500);
     system("pause");
 
+    main();
     return 0;
 }
